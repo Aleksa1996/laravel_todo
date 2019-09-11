@@ -3,11 +3,19 @@
 @section('content')
     <div class="container">
 
-        {!! Form::open(['url' => route('positions_save')]) !!}
-            <div class="form-group">
-                {{ Form::label('name','Ime') }}
-                {{ Form::text('name',$position->name,['class'=>'form-control']) }}
-            </div>
+        {{ Form::model($model, ['route' => [ request()->route()->getName(), $model->id]]) }}
+            @foreach ($model->getProperties() as $property => $value)
+                <div class="form-group">
+                    {{ Form::label($property ,$property) }}
+                    {{ Form::text($property ,null, ['class'=> ['form-control', ($errors->has($property) ? 'is-invalid' : '')]]) }}
+                    @if ($errors->has($property))
+                        <div class="invalid-feedback">
+                            {{ $errors->first($property) }}
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+
 
             {{ Form::submit('Sacuvaj',['class' => 'btn btn-info add-new']) }}
         {!! Form::close() !!}

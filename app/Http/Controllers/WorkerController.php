@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Worker;
+use App\Http\Requests\Worker as WorkerRequest;
 use Illuminate\Http\Request;
 
 class WorkerController extends Controller
@@ -14,29 +15,17 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        //
+        return view('index', [
+            'table' => [
+                'name' => 'Zaposleni',
+                'action' => 'workers',
+                'tHeads' => ['id' => '#', 'firstname' => 'Ime', 'lastname' => 'Prezime'],
+                'tRows' => Worker::all()
+            ]
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
 
     /**
      * Display the specified resource.
@@ -44,20 +33,11 @@ class WorkerController extends Controller
      * @param  \App\Worker  $worker
      * @return \Illuminate\Http\Response
      */
-    public function show(Worker $worker)
+    public function show($id = null, Request $request)
     {
-        //
-    }
+        $worker = $id ?  Worker::find($id) : new Worker();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Worker  $worker
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Worker $worker)
-    {
-        //
+        return view('save', ['model' => $worker]);
     }
 
     /**
@@ -67,9 +47,18 @@ class WorkerController extends Controller
      * @param  \App\Worker  $worker
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Worker $worker)
+    public function save($id = null, WorkerRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $worker = $id ?  Worker::find($id) : new Worker();
+        $worker->fill($validated);
+
+        if ($worker->save()) {
+            $request->session()->flash('message', 'Uspesno sacuvano!');
+            return redirect('workers');
+        }
+
+        $request->session()->flash('message', 'Greska pri cuvanju!');
     }
 
     /**
@@ -78,8 +67,12 @@ class WorkerController extends Controller
      * @param  \App\Worker  $worker
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Worker $worker)
+    public function destroy($id)
     {
-        //
+        if (Worker::destroy($id)) {
+            request()->session()->flash('message', 'Uspesno izbrisano!');
+        }
+
+        return redirect('workers');
     }
 }

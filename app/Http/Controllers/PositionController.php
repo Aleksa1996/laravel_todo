@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Position as PositionRequest;
 use App\Position;
 use Illuminate\Http\Request;
 
@@ -18,8 +19,8 @@ class PositionController extends Controller
             'table' => [
                 'name' => 'Pozicije',
                 'action' => 'positions',
-                'tHeads' => ['id' => '#', 'firstname' => 'Ime', 'lastname' => 'Prezime', 'positions' => 'Pozicije'],
-                'tRows' => []
+                'tHeads' => ['id' => '#', 'name' => 'Ime pozicije'],
+                'tRows' => Position::all()
             ]
         ]);
     }
@@ -32,13 +33,11 @@ class PositionController extends Controller
      * @param  \App\Position  $position
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request)
+    public function show($id = null, Request $request)
     {
-        $position = new Position();
+        $position = $id ?  Position::find($id) : new Position();
 
-        $position->name = 'hello';
-
-        return view('save', ['position' => $position]);
+        return view('save', ['model' => $position]);
     }
 
     /**
@@ -48,9 +47,18 @@ class PositionController extends Controller
      * @param  \App\Position  $position
      * @return \Illuminate\Http\Response
      */
-    public function save(Request $request)
+    public function save($id = null, PositionRequest $request)
     {
-        // dd($request->all());
+        $validated = $request->validated();
+        $position = $id ?  Position::find($id) : new Position();
+        $position->fill($validated);
+
+        if ($position->save()) {
+            $request->session()->flash('message', 'Uspesno sacuvano!');
+            return redirect('positions');
+        }
+
+        $request->session()->flash('message', 'Greska pri cuvanju!');
     }
 
     /**
@@ -59,8 +67,12 @@ class PositionController extends Controller
      * @param  \App\Position  $position
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Position $position)
+    public function destroy($id)
     {
-        //
+        if (Position::destroy($id)) {
+            request()->session()->flash('message', 'Uspesno izbrisano!');
+        }
+
+        return redirect('positions');
     }
 }
